@@ -48,6 +48,8 @@ public class GameListActivity extends BaseActivity implements SwipeRefreshLayout
     private TextView txtEmpty;
     private SwipeRefreshLayout mRefresh;
 
+    private Game[] mGames = new Game[0];
+
     private RequestQueue mRequests = new RequestQueue(new NoCache(), new BasicNetwork(new HurlStack()));
 
     @Override
@@ -71,21 +73,29 @@ public class GameListActivity extends BaseActivity implements SwipeRefreshLayout
                 android.R.color.holo_orange_dark,
                 android.R.color.holo_blue_dark);
 
-        /**
-         * Showing Swipe Refresh animation on activity create
-         * As animation won't start on onCreate, post runnable is used
-         */
-        mRefresh.post(new Runnable() {
+        mRequests.start();
+
+        mList.setAdapter(new RecyclerView.Adapter<ViewHolder>() {
+
+            @NonNull
+            @Override
+            public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int i) {
+                ViewGroup view = (ViewGroup) LayoutInflater.from(GameListActivity.this).inflate(R.layout.listitem_game, parent, false);
+                return new ViewHolder(view);
+            }
 
             @Override
-            public void run() {
+            public void onBindViewHolder(@NonNull ViewHolder viewHolder, int i) {
+                Game game = mGames[i];
+                viewHolder.txt.setText(String.format("%d player%s", game.playerIds.length, game.playerIds.length == 1 ? "" : "s"));
+                viewHolder.date.setText(DateTimeUtils.getTimeAgo(GameListActivity.this, game.startTime));
+            }
 
-                // Fetching data from server
-                loadData();
+            @Override
+            public int getItemCount() {
+                return mGames.length;
             }
         });
-
-        mRequests.start();
     }
 
     @Override
@@ -106,6 +116,8 @@ public class GameListActivity extends BaseActivity implements SwipeRefreshLayout
     private void loadData() {
         mRefresh.setRefreshing(true);
         txtEmpty.setVisibility(View.GONE);
+        mGames = new Game[0];
+        mList.getAdapter().notifyDataSetChanged();
         Request request = new JsonArrayRequest(Request.Method.GET, URL, null, new Response.Listener<JSONArray>() {
             @Override
             public void onResponse(JSONArray response) {
@@ -116,29 +128,9 @@ public class GameListActivity extends BaseActivity implements SwipeRefreshLayout
                     return;
                 }
 
-                final Game[] games = new Gson().fromJson(response.toString(), Game[].class);
+                mGames = new Gson().fromJson(response.toString(), Game[].class);
 
-                mList.setAdapter(new RecyclerView.Adapter<ViewHolder>() {
-
-                    @NonNull
-                    @Override
-                    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int i) {
-                        ViewGroup view = (ViewGroup) LayoutInflater.from(GameListActivity.this).inflate(R.layout.listitem_game, parent, false);
-                        return new ViewHolder(view);
-                    }
-
-                    @Override
-                    public void onBindViewHolder(@NonNull ViewHolder viewHolder, int i) {
-                        Game game = games[i];
-                        viewHolder.txt.setText(String.format("%d player%s", game.playerIds.length, game.playerIds.length == 1 ? "" : "s"));
-                        viewHolder.date.setText(DateTimeUtils.getTimeAgo(GameListActivity.this, game.startTime));
-                    }
-
-                    @Override
-                    public int getItemCount() {
-                        return games.length;
-                    }
-                });
+                mList.getAdapter().notifyDataSetChanged();
             }
         }, new Response.ErrorListener() {
             @Override
