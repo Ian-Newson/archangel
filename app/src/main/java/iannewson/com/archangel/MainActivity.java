@@ -11,24 +11,27 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.microsoft.windowsazure.notifications.NotificationsManager;
 import android.content.Intent;
 import android.util.Log;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
     public static MainActivity mainActivity;
     public static Boolean isVisible = false;
     private static final String TAG = "MainActivity";
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
 
+    private ProgressBar mProgress;
+    private TextView mText;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        getSupportActionBar().setCustomView(R.layout.actionbartitle);
-        getSupportActionBar().setDisplayShowCustomEnabled(true);
-        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
+        mProgress = findViewById(R.id.progressBar);
+        mText = findViewById(R.id.txtStatus);
 
         mainActivity = this;
         NotificationsManager.handleNotifications(this, NotificationSettings.SenderId, MyHandler.class);
@@ -98,6 +101,16 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, notificationMessage, Toast.LENGTH_LONG).show();
                 //TextView helloText = (TextView) findViewById(R.id.txt_hello);
                 //helloText.setText(notificationMessage);
+            }
+        });
+    }
+
+    public void registrationCompleted() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mProgress.animate().alpha(0).start();
+                mText.setText("Registration completed! You will now receive game alerts for Archangel.");
             }
         });
     }
