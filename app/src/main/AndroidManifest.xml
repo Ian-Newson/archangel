@@ -24,6 +24,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".GameListActivity">
+        </activity>
 
         <service android:name=".MyInstanceIDService">
             <intent-filter>

@@ -52,7 +52,7 @@ public class MyHandler extends NotificationsHandler {
 
     private void sendNotification(String msg) {
 
-        Intent intent = new Intent(ctx, MainActivity.class);
+        Intent intent = new Intent(ctx, GameListActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
         mNotificationManager = (NotificationManager)

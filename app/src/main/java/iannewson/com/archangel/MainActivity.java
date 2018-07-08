@@ -109,8 +109,11 @@ public class MainActivity extends BaseActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                mProgress.animate().alpha(0).start();
-                mText.setText("Registration completed! You will now receive game alerts for Archangel.");
+                //mProgress.animate().alpha(0).start();
+                toast("Registration completed! You will now receive game alerts for Archangel.");
+
+                startActivity(GameListActivity.class);
+                finish();
             }
         });
     }
