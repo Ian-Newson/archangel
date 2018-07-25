@@ -1,43 +1,38 @@
 package iannewson.com.archangel;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.BasicNetwork;
-import com.android.volley.toolbox.HurlStack;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.NoCache;
+import com.android.volley.toolbox.Volley;
 import com.github.thunder413.datetimeutils.DateTimeUtils;
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-import iannewson.com.archangel.BaseActivity;
-import iannewson.com.archangel.R;
+import iannewson.com.archangel.database.Player;
+import iannewson.com.archangel.database.PlayerRepository;
+import iannewson.com.archangel.models.dtos.Game;
+import iannewson.com.archangel.models.dtos.Leaderboard;
 
 public class GameListActivity extends BaseActivity implements SwipeRefreshLayout.OnRefreshListener {
 
@@ -50,7 +45,7 @@ public class GameListActivity extends BaseActivity implements SwipeRefreshLayout
 
     private Game[] mGames = new Game[0];
 
-    private RequestQueue mRequests = new RequestQueue(new NoCache(), new BasicNetwork(new HurlStack()));
+    private RequestQueue mRequests;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -73,7 +68,6 @@ public class GameListActivity extends BaseActivity implements SwipeRefreshLayout
                 android.R.color.holo_orange_dark,
                 android.R.color.holo_blue_dark);
 
-        mRequests.start();
 
         mList.setAdapter(new RecyclerView.Adapter<ViewHolder>() {
 
@@ -87,8 +81,38 @@ public class GameListActivity extends BaseActivity implements SwipeRefreshLayout
             @Override
             public void onBindViewHolder(@NonNull ViewHolder viewHolder, int i) {
                 Game game = mGames[i];
-                viewHolder.txt.setText(String.format("%d player%s", game.playerIds.length, game.playerIds.length == 1 ? "" : "s"));
-                viewHolder.date.setText(DateTimeUtils.getTimeAgo(GameListActivity.this, game.startTime));
+                //viewHolder.txt.setText(String.format("%d player%s", game.playerIds.length, game.playerIds.length == 1 ? "" : "s"));
+
+                if (null != game.startTime)
+                    viewHolder.date.setText(DateTimeUtils.getTimeAgo(GameListActivity.this, game.startTime));
+                else
+                    viewHolder.date.setText("");
+
+                PlayerRepository playerRepo = new PlayerRepository();
+                List<Player> players = new ArrayList<>();
+                for (UUID playerId : game.playerIds) {
+                    Player player = playerRepo.getPlayerById(playerId);
+                    if (null != player) {
+                        players.add(player);
+                    }
+                }
+
+                StringBuilder strNames = new StringBuilder();
+                for (int p = 0; p < players.size(); ++p) {
+                    if (p > 0) {
+                        strNames.append(", ");
+                    }
+                    strNames.append(players.get(p).getDescription());
+                }
+
+                if (strNames.length() == 0) {
+                    strNames.append(String.format("%d new player%s", game.playerIds.length, game.playerIds.length != 1 ? "s" : ""));
+                } else {
+                    if (game.playerIds.length > players.size()) {
+                        strNames.append(String.format("(+ %d new players", (game.playerIds.length - players.size())));
+                    }
+                }
+                viewHolder.txt.setText(strNames.toString());
             }
 
             @Override
@@ -99,26 +123,29 @@ public class GameListActivity extends BaseActivity implements SwipeRefreshLayout
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
-        mRequests.stop();
-    }
-
-    @Override
     protected void onResume() {
         super.onResume();
+
+        if (null != mRequests) {
+            mRequests.stop();
+        }
+        mRequests = Volley.newRequestQueue(getApplicationContext());
+        mRequests.start();
 
         txtEmpty.setVisibility(View.INVISIBLE);
 
         loadData();
     }
 
+    private boolean hasRetrievedPlayers = false;
+
     private void loadData() {
         mRefresh.setRefreshing(true);
         txtEmpty.setVisibility(View.GONE);
         mGames = new Game[0];
         mList.getAdapter().notifyDataSetChanged();
-        Request request = new JsonArrayRequest(Request.Method.GET, URL, null, new Response.Listener<JSONArray>() {
+
+        final Request request = new JsonArrayRequest(Request.Method.GET, URL, null, new Response.Listener<JSONArray>() {
             @Override
             public void onResponse(JSONArray response) {
                 mRefresh.setRefreshing(false);
@@ -140,7 +167,34 @@ public class GameListActivity extends BaseActivity implements SwipeRefreshLayout
             }
         });
 
-        mRequests.add(request);
+        Request playersRequest = new JsonObjectRequest(Request.Method.GET, "https://api.operaevent.co/api/archangel_leaderboards", null, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+
+                Leaderboard leaderboard = new Gson().fromJson(response.toString(), Leaderboard.class);
+
+                if (null != leaderboard && null != leaderboard.global) {
+                    PlayerRepository players = new PlayerRepository();
+                    players.sync(leaderboard.global);
+                }
+
+                mRequests.add(request);
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                toast(error.getMessage());
+                mRefresh.setRefreshing(false);
+            }
+        });
+
+        if (hasRetrievedPlayers) {
+            mRequests.add(request);
+        } else {
+            mRequests.add(playersRequest);
+            hasRetrievedPlayers = true;
+        }
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
@@ -159,15 +213,4 @@ public class GameListActivity extends BaseActivity implements SwipeRefreshLayout
         loadData();
     }
 
-    public class Game {
-        public int version;
-        public UUID uid;
-        public String gameVersion;
-        public int numPlayersDesired;
-        public UUID[] playerIds;
-        public Date startTime;
-        public String status;
-        public int maximumTeamSize;
-        public Date dateModified;
-    }
 }
