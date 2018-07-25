@@ -16,7 +16,7 @@ public class Player extends RealmObject {
     }
 
     public void copyFrom(iannewson.com.archangel.models.dtos.Player playerDto) {
-        if (null == playerDto)
+        if (null ==  id)
             id = playerDto._id.toString();
         matches = playerDto.matches;
         kills = playerDto.kills;
