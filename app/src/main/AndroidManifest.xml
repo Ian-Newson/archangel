@@ -18,6 +18,9 @@
         android:theme="@style/AppTheme"
         android:name=".Application"
         tools:replace="android:icon">
+
+        <uses-library android:name="org.apache.http.legacy" android:required="false" />
+
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
