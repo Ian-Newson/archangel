@@ -17,11 +17,13 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.gson.Gson;
 
+import org.greenrobot.eventbus.EventBus;
 import org.json.JSONObject;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
+import iannewson.com.archangel.events.NumberSearchingChangedEvent;
 import iannewson.com.archangel.fragments.GameListFragment;
 import iannewson.com.archangel.fragments.PlayerListFragment;
 import iannewson.com.archangel.models.dtos.Stats;
@@ -69,9 +71,29 @@ public class ListsActivity extends BaseActivity {
         }
         mRequests = Volley.newRequestQueue(getApplicationContext());
         mRequests.start();
+    }
 
-        Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
+    private Timer mStatsTimer = null;
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (null != mStatsTimer) {
+            mStatsTimer.cancel();
+            mStatsTimer = null;
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (null != mStatsTimer) {
+            mStatsTimer.cancel();
+        }
+
+        mStatsTimer = new Timer();
+        mStatsTimer.schedule(new TimerTask() {
             @Override
             public void run() {
                 runOnUiThread(new Runnable() {
@@ -81,7 +103,7 @@ public class ListsActivity extends BaseActivity {
                     }
                 });
             }
-        }, 0, 20*1000);
+        }, 0, 10*1000);
     }
 
     @Override
@@ -90,6 +112,8 @@ public class ListsActivity extends BaseActivity {
 
         mRequests.stop();
     }
+
+    private Integer mNumberSearching = null;
 
     public void refreshStats() {
         Request request = new JsonObjectRequest(Request.Method.GET, "https://aa.sdawsapi.com/matchmaking/stats", null, new Response.Listener<JSONObject>() {
@@ -100,6 +124,12 @@ public class ListsActivity extends BaseActivity {
                 int searching = 0;
                 if (null != stats.statuses) {
                     searching = stats.statuses.SEARCHING;
+                }
+
+                if (null == mNumberSearching ||
+                    mNumberSearching != searching) {
+                    EventBus.getDefault().post(new NumberSearchingChangedEvent(mNumberSearching, searching));
+                    mNumberSearching = searching;
                 }
 
                 txtSearching.setText(String.valueOf(searching));

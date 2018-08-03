@@ -21,6 +21,9 @@ import com.android.volley.toolbox.Volley;
 import com.github.thunder413.datetimeutils.DateTimeUtils;
 import com.google.gson.Gson;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -31,6 +34,7 @@ import java.util.UUID;
 import iannewson.com.archangel.R;
 import iannewson.com.archangel.database.Player;
 import iannewson.com.archangel.database.PlayerRepository;
+import iannewson.com.archangel.events.NumberSearchingChangedEvent;
 import iannewson.com.archangel.models.dtos.Game;
 import iannewson.com.archangel.models.dtos.Leaderboard;
 
@@ -148,7 +152,16 @@ public class GameListFragment extends BaseFragment implements SwipeRefreshLayout
 
         txtEmpty.setVisibility(View.INVISIBLE);
 
+        EventBus.getDefault().register(this);
+
         loadData();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        EventBus.getDefault().unregister(this);
     }
 
     private boolean hasRetrievedPlayers = false;
@@ -225,5 +238,10 @@ public class GameListFragment extends BaseFragment implements SwipeRefreshLayout
     @Override
     public void onRefresh() {
         loadData();
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(NumberSearchingChangedEvent event) {
+        onRefresh();
     }
 }
