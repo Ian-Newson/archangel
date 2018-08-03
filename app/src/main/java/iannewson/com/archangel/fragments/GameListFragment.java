@@ -39,10 +39,6 @@ import iannewson.com.archangel.models.dtos.Leaderboard;
  */
 public class GameListFragment extends BaseFragment implements SwipeRefreshLayout.OnRefreshListener {
 
-    /**
-     * Returns a new instance of this fragment for the given section
-     * number.
-     */
     public static GameListFragment newInstance() {
         GameListFragment fragment = new GameListFragment();
         return fragment;

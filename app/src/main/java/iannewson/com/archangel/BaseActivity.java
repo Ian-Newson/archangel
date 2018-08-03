@@ -6,6 +6,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 import android.widget.Toast;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
@@ -34,6 +35,10 @@ public class BaseActivity extends AppCompatActivity {
     public void startActivity(Class<? extends BaseActivity> clazz) {
         Intent intent = new Intent(this, clazz);
         startActivity(intent);
+    }
+
+    public <T extends View> T $(int id) {
+        return (T)findViewById(id);
     }
 
 }

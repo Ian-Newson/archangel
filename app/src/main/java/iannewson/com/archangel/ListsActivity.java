@@ -1,20 +1,30 @@
 package iannewson.com.archangel;
 
 import android.support.annotation.Nullable;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.widget.TextView;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+import com.google.gson.Gson;
+
+import org.json.JSONObject;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 import iannewson.com.archangel.fragments.GameListFragment;
 import iannewson.com.archangel.fragments.PlayerListFragment;
+import iannewson.com.archangel.models.dtos.Stats;
 
 public class ListsActivity extends BaseActivity {
 
@@ -33,6 +43,10 @@ public class ListsActivity extends BaseActivity {
      */
     private ViewPager mViewPager;
 
+    private TextView txtOnline, txtSearching;
+
+    private RequestQueue mRequests;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,7 +60,62 @@ public class ListsActivity extends BaseActivity {
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
         mViewPager.setOffscreenPageLimit(0);
+
+        txtSearching = $(R.id.txtSearching);
+        txtOnline = $(R.id.txtOnline);
+
+        if (null != mRequests) {
+            mRequests.stop();
+        }
+        mRequests = Volley.newRequestQueue(getApplicationContext());
+        mRequests.start();
+
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        refreshStats();
+                    }
+                });
+            }
+        }, 0, 20*1000);
     }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        mRequests.stop();
+    }
+
+    public void refreshStats() {
+        Request request = new JsonObjectRequest(Request.Method.GET, "https://aa.sdawsapi.com/matchmaking/stats", null, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                Stats stats = new Gson().fromJson(response.toString(), Stats.class);
+
+                int searching = 0;
+                if (null != stats.statuses) {
+                    searching = stats.statuses.SEARCHING;
+                }
+
+                txtSearching.setText(String.valueOf(searching));
+                txtOnline.setText(String.valueOf(stats.total));
+            }
+        }, new Response.ErrorListener() {
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                toast("Error retrieving stats: " + error.getLocalizedMessage());
+            }
+        });
+        mRequests.add(request);
+    }
+
+
 
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
