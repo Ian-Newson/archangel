@@ -112,7 +112,7 @@ public class MainActivity extends BaseActivity {
                 //mProgress.animate().alpha(0).start();
                 toast("Registration completed! You will now receive game alerts for Archangel.");
 
-                startActivity(GameListActivity.class);
+                startActivity(ListsActivity.class);
                 finish();
             }
         });

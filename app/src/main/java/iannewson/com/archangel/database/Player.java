@@ -45,6 +45,14 @@ public class Player extends RealmObject {
         return String.format("%s (kdr %.1f)", this.name, this.kdr);
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public double getKdr() {
+        return kdr;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -65,5 +73,9 @@ public class Player extends RealmObject {
     public int hashCode() {
 
         return Objects.hash(id, matches, kills, deaths, wins, losses, name, kdr, score);
+    }
+
+    public double getScore() {
+        return score;
     }
 }

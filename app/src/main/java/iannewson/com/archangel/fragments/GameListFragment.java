@@ -1,9 +1,8 @@
-package iannewson.com.archangel;
+package iannewson.com.archangel.fragments;
 
 import android.animation.LayoutTransition;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -21,7 +20,6 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.github.thunder413.datetimeutils.DateTimeUtils;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -30,12 +28,25 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import iannewson.com.archangel.R;
 import iannewson.com.archangel.database.Player;
 import iannewson.com.archangel.database.PlayerRepository;
 import iannewson.com.archangel.models.dtos.Game;
 import iannewson.com.archangel.models.dtos.Leaderboard;
 
-public class GameListActivity extends BaseActivity implements SwipeRefreshLayout.OnRefreshListener {
+/**
+ * A placeholder fragment containing a simple view.
+ */
+public class GameListFragment extends BaseFragment implements SwipeRefreshLayout.OnRefreshListener {
+
+    /**
+     * Returns a new instance of this fragment for the given section
+     * number.
+     */
+    public static GameListFragment newInstance() {
+        GameListFragment fragment = new GameListFragment();
+        return fragment;
+    }
 
     //public static final String URL = "https://api.myjson.com/bins/1gkl4a";//"https://aa.sdawsapi.com/matchmaking";
     public static final String URL = "https://aa.sdawsapi.com/matchmaking";
@@ -49,24 +60,23 @@ public class GameListActivity extends BaseActivity implements SwipeRefreshLayout
     private RequestQueue mRequests;
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        ViewGroup rootView = (ViewGroup) inflater.inflate(R.layout.fragment_list, container, false);
 
-        setContentView(R.layout.activity_gamelist);
-
-        ((ViewGroup)findViewById(R.id.root))
+        ((ViewGroup)rootView.findViewById(R.id.root))
                 .getLayoutTransition()
                 .enableTransitionType(LayoutTransition.CHANGING);
 
-        mList = findViewById(R.id.list);
-        txtEmpty = findViewById(R.id.txtEmpty);
+        mList = rootView.findViewById(R.id.list);
+        txtEmpty = rootView.findViewById(R.id.txtEmpty);
 
-        LinearLayoutManager layoutManager = new LinearLayoutManager(GameListActivity.this);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         mList.setLayoutManager(layoutManager);
 
         // SwipeRefreshLayout
-        mRefresh = findViewById(R.id.swipe_container);
+        mRefresh = rootView.findViewById(R.id.swipe_container);
         mRefresh.setOnRefreshListener(this);
         mRefresh.setColorSchemeResources(R.color.colorPrimary,
                 android.R.color.holo_green_dark,
@@ -74,22 +84,23 @@ public class GameListActivity extends BaseActivity implements SwipeRefreshLayout
                 android.R.color.holo_blue_dark);
 
 
-        mList.setAdapter(new RecyclerView.Adapter<ViewHolder>() {
+        mList.setAdapter(new RecyclerView.Adapter<GameListFragment.ViewHolder>() {
 
             @NonNull
             @Override
-            public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int i) {
-                ViewGroup view = (ViewGroup) LayoutInflater.from(GameListActivity.this).inflate(R.layout.listitem_game, parent, false);
+            public GameListFragment.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int i) {
+                ViewGroup view = (ViewGroup) LayoutInflater.from(getContext()).inflate(R.layout.listitem_game, parent, false);
                 return new ViewHolder(view);
+
             }
 
             @Override
-            public void onBindViewHolder(@NonNull ViewHolder viewHolder, int i) {
+            public void onBindViewHolder(@NonNull GameListFragment.ViewHolder viewHolder, int i) {
                 Game game = mGames[i];
                 //viewHolder.txt.setText(String.format("%d player%s", game.playerIds.length, game.playerIds.length == 1 ? "" : "s"));
 
                 if (null != game.startTime)
-                    viewHolder.date.setText(DateTimeUtils.getTimeAgo(GameListActivity.this, game.startTime));
+                    viewHolder.date.setText(DateTimeUtils.getTimeAgo(getContext(), game.startTime));
                 else
                     viewHolder.date.setText("");
 
@@ -125,16 +136,18 @@ public class GameListActivity extends BaseActivity implements SwipeRefreshLayout
                 return mGames.length;
             }
         });
+
+        return rootView;
     }
 
     @Override
-    protected void onResume() {
+    public void onResume() {
         super.onResume();
 
         if (null != mRequests) {
             mRequests.stop();
         }
-        mRequests = Volley.newRequestQueue(getApplicationContext());
+        mRequests = Volley.newRequestQueue(getContext().getApplicationContext());
         mRequests.start();
 
         txtEmpty.setVisibility(View.INVISIBLE);
@@ -217,5 +230,4 @@ public class GameListActivity extends BaseActivity implements SwipeRefreshLayout
     public void onRefresh() {
         loadData();
     }
-
 }

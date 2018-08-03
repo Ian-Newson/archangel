@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="50dp"
+    android:background="@android:color/black">
+
+    <TextView
+        android:id="@+id/txtName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingStart="20dp"
+        android:text="TextView"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:layout_editor_absoluteX="1dp" />
+
+    <TextView
+        android:id="@+id/txtKdrTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="5dp"
+        android:text="KDR"
+        android:textColor="@android:color/darker_gray"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/txtKdr"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="3.7"
+        android:textColor="@android:color/white"
+        app:layout_constraintRight_toRightOf="@+id/txtKdrTitle"
+        app:layout_constraintTop_toBottomOf="@id/txtKdrTitle" />
+
+    <TextView
+        android:id="@+id/txtScoreTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="20dp"
+        android:layout_marginTop="5dp"
+        android:text="Score"
+        android:textColor="@android:color/darker_gray"
+        app:layout_constraintRight_toLeftOf="@+id/txtKdrTitle"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/txtScore"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="1984"
+        android:textColor="@android:color/white"
+        app:layout_constraintRight_toRightOf="@+id/txtScoreTitle"
+        app:layout_constraintTop_toBottomOf="@id/txtScoreTitle" />
+
+</android.support.constraint.ConstraintLayout>

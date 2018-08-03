@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import io.realm.Realm;
 import io.realm.RealmResults;
+import io.realm.Sort;
 
 public class PlayerRepository {
 
@@ -56,4 +57,10 @@ public class PlayerRepository {
         realm.copyToRealmOrUpdate(player);
     }
 
+    public List<Player> getAll() {
+        return Realm.getDefaultInstance()
+                .where(Player.class)
+                .sort("score", Sort.DESCENDING)
+                .findAll();
+    }
 }
