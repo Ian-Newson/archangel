@@ -1,4 +1,6 @@
 apply plugin: 'com.android.application'
+apply plugin: 'io.fabric'
+apply plugin: 'com.google.firebase.firebase-perf'
 
 android {
     useLibrary 'org.apache.http.legacy'
@@ -7,8 +9,8 @@ android {
         applicationId "iannewson.com.archangel"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 7
-        versionName "1.6"
+        versionCode 8
+        versionName "1.7"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -39,6 +41,9 @@ dependencies {
     implementation 'io.realm:android-adapters:2.1.1'
 
     implementation 'org.greenrobot:eventbus:3.1.1'
+
+    implementation 'com.crashlytics.sdk.android:crashlytics:2.9.3'
+    implementation 'com.google.firebase:firebase-perf:16.0.0'
 }
 
 repositories {

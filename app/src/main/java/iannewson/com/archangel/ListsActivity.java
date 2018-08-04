@@ -15,6 +15,8 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.firebase.perf.FirebasePerformance;
+import com.google.firebase.perf.metrics.Trace;
 import com.google.gson.Gson;
 
 import org.greenrobot.eventbus.EventBus;
@@ -92,6 +94,8 @@ public class ListsActivity extends BaseActivity {
             mStatsTimer.cancel();
         }
 
+        mRequests.start();
+
         mStatsTimer = new Timer();
         mStatsTimer.schedule(new TimerTask() {
             @Override
@@ -116,6 +120,8 @@ public class ListsActivity extends BaseActivity {
     private Integer mNumberSearching = null;
 
     public void refreshStats() {
+        final Trace trace = FirebasePerformance.getInstance().newTrace("refresh_stats");
+        trace.start();
         Request request = new JsonObjectRequest(Request.Method.GET, "https://aa.sdawsapi.com/matchmaking/stats", null, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
@@ -134,12 +140,14 @@ public class ListsActivity extends BaseActivity {
 
                 txtSearching.setText(String.valueOf(searching));
                 txtOnline.setText(String.valueOf(stats.total));
+                trace.stop();
             }
         }, new Response.ErrorListener() {
 
             @Override
             public void onErrorResponse(VolleyError error) {
                 toast("Error retrieving stats: " + error.getLocalizedMessage());
+                trace.stop();
             }
         });
         mRequests.add(request);
