@@ -1,5 +1,8 @@
 package iannewson.com.archangel.database;
 
+import com.google.firebase.perf.FirebasePerformance;
+import com.google.firebase.perf.metrics.Trace;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -17,6 +20,8 @@ public class PlayerRepository {
     }
 
     public void sync(List<iannewson.com.archangel.models.dtos.Player> playerDtos) {
+        Trace trace = FirebasePerformance.getInstance().newTrace("player_sync");
+        trace.start();
         Realm realm = Realm.getDefaultInstance();
         RealmResults<Player> players = realm
                 .where(Player.class)
@@ -43,6 +48,7 @@ public class PlayerRepository {
         }
 
         realm.commitTransaction();
+        trace.stop();
     }
 
     public void insert(Player player) {

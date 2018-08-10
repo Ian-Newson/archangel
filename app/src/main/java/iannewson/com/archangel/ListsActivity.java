@@ -15,13 +15,17 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.firebase.perf.FirebasePerformance;
+import com.google.firebase.perf.metrics.Trace;
 import com.google.gson.Gson;
 
+import org.greenrobot.eventbus.EventBus;
 import org.json.JSONObject;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
+import iannewson.com.archangel.events.NumberSearchingChangedEvent;
 import iannewson.com.archangel.fragments.GameListFragment;
 import iannewson.com.archangel.fragments.PlayerListFragment;
 import iannewson.com.archangel.models.dtos.Stats;
@@ -69,9 +73,31 @@ public class ListsActivity extends BaseActivity {
         }
         mRequests = Volley.newRequestQueue(getApplicationContext());
         mRequests.start();
+    }
 
-        Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
+    private Timer mStatsTimer = null;
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (null != mStatsTimer) {
+            mStatsTimer.cancel();
+            mStatsTimer = null;
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (null != mStatsTimer) {
+            mStatsTimer.cancel();
+        }
+
+        mRequests.start();
+
+        mStatsTimer = new Timer();
+        mStatsTimer.schedule(new TimerTask() {
             @Override
             public void run() {
                 runOnUiThread(new Runnable() {
@@ -81,7 +107,7 @@ public class ListsActivity extends BaseActivity {
                     }
                 });
             }
-        }, 0, 20*1000);
+        }, 0, 10*1000);
     }
 
     @Override
@@ -91,7 +117,11 @@ public class ListsActivity extends BaseActivity {
         mRequests.stop();
     }
 
+    private Integer mNumberSearching = null;
+
     public void refreshStats() {
+        final Trace trace = FirebasePerformance.getInstance().newTrace("refresh_stats");
+        trace.start();
         Request request = new JsonObjectRequest(Request.Method.GET, "https://aa.sdawsapi.com/matchmaking/stats", null, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
@@ -102,14 +132,22 @@ public class ListsActivity extends BaseActivity {
                     searching = stats.statuses.SEARCHING;
                 }
 
+                if (null == mNumberSearching ||
+                    mNumberSearching != searching) {
+                    EventBus.getDefault().post(new NumberSearchingChangedEvent(mNumberSearching, searching));
+                    mNumberSearching = searching;
+                }
+
                 txtSearching.setText(String.valueOf(searching));
                 txtOnline.setText(String.valueOf(stats.total));
+                trace.stop();
             }
         }, new Response.ErrorListener() {
 
             @Override
             public void onErrorResponse(VolleyError error) {
                 toast("Error retrieving stats: " + error.getLocalizedMessage());
+                trace.stop();
             }
         });
         mRequests.add(request);
