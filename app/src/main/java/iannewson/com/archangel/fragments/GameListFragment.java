@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -19,6 +20,7 @@ import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.github.thunder413.datetimeutils.DateTimeUtils;
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.gson.Gson;
 
 import org.json.JSONArray;
@@ -185,11 +187,18 @@ public class GameListFragment extends BaseFragment implements SwipeRefreshLayout
             @Override
             public void onResponse(JSONObject response) {
 
-                Leaderboard leaderboard = new Gson().fromJson(response.toString(), Leaderboard.class);
+                try {
+                    Leaderboard leaderboard = new Gson().fromJson(response.toString(), Leaderboard.class);
 
-                if (null != leaderboard && null != leaderboard.global) {
-                    PlayerRepository players = new PlayerRepository();
-                    players.sync(leaderboard.global);
+                    if (null != leaderboard && null != leaderboard.global) {
+                        PlayerRepository players = new PlayerRepository();
+                        players.sync(leaderboard.global);
+                    }
+                } catch (IllegalArgumentException ex) {
+                    Toast.makeText(GameListFragment.this.getContext(), String.format("There was an error updating players. %s", ex.getLocalizedMessage()), Toast.LENGTH_LONG).show();
+                    Bundle bundle = new Bundle();
+                    bundle.putString("Message", ex.getLocalizedMessage());
+                    FirebaseAnalytics.getInstance(GameListFragment.this.getContext()).logEvent("Exception", bundle);
                 }
 
                 mRequests.add(request);
