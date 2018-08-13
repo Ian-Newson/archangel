@@ -1,5 +1,7 @@
 package iannewson.com.archangel.database;
 
+import android.os.Debug;
+
 import com.google.firebase.perf.FirebasePerformance;
 import com.google.firebase.perf.metrics.Trace;
 
@@ -20,11 +22,25 @@ public class PlayerRepository {
     }
 
     public Player getPlayerByUuid(UUID id) {
-        return Realm.getDefaultInstance()
+        Player player = Realm.getDefaultInstance()
                 .where(Player.class)
                 .equalTo("uniqueIds.id", id.toString())
-                .equalTo("id", id.toString())
                 .findFirst();
+
+        if (Debug.isDebuggerConnected()) {
+            //This is test code to see if the above code is failing.
+            if (null == player) {
+                PlayerId playerId = Realm.getDefaultInstance()
+                        .where(PlayerId.class)
+                        .equalTo("id", id.toString())
+                        .findFirst();
+                if (null != playerId) {
+                    throw new IllegalArgumentException("Hmm, player id found but the player wasn't...");
+                }
+            }
+        }
+
+        return player;
     }
 
     public void sync(List<iannewson.com.archangel.models.dtos.Player> playerDtos) {
