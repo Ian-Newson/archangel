@@ -109,7 +109,7 @@ public class GameListFragment extends BaseFragment implements SwipeRefreshLayout
                 PlayerRepository playerRepo = new PlayerRepository();
                 List<Player> players = new ArrayList<>();
                 for (UUID playerId : game.playerIds) {
-                    Player player = playerRepo.getPlayerById(playerId);
+                    Player player = playerRepo.getPlayerByUuid(playerId);
                     if (null != player) {
                         players.add(player);
                     }

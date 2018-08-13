@@ -1,8 +1,9 @@
 package iannewson.com.archangel.database;
 
+import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 
+import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 
@@ -26,6 +27,24 @@ public class Player extends RealmObject {
         name = playerDto.player;
         kdr = playerDto.kdr;
         score = playerDto.score;
+
+        if (null != playerDto.player_ids) {
+            List<PlayerId> existingIds = this.getUniqueIds();
+            for (String id : playerDto.player_ids) {
+                boolean exists = false;
+                if (null != existingIds) {
+                    for (PlayerId existingId : existingIds) {
+                        if (existingId.getId() == id) {
+                            exists = true;
+                            break;
+                        }
+                    }
+                }
+                if (!exists) {
+                    this.uniqueIds.add(new PlayerId(id));
+                }
+            }
+        }
     }
 
     @PrimaryKey
@@ -35,6 +54,7 @@ public class Player extends RealmObject {
     public String name;
     public double kdr;
     public double score;
+    public RealmList<PlayerId> uniqueIds;
 
     public boolean equals(iannewson.com.archangel.models.dtos.Player dto) {
         Player other = new Player(dto);
@@ -51,6 +71,19 @@ public class Player extends RealmObject {
 
     public double getKdr() {
         return kdr;
+    }
+
+    // Win/loss ratio
+    public double getWlr() {
+        if (0 == losses) return wins;
+        return ((double)wins)/((double)losses);
+    }
+
+    public List<PlayerId> getUniqueIds() {
+        if (null == uniqueIds) {
+            uniqueIds = new RealmList<>();
+        }
+        return uniqueIds;
     }
 
     @Override

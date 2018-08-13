@@ -104,6 +104,7 @@ public class PlayerListFragment extends BaseFragment implements SwipeRefreshLayo
                 viewHolder.txtName.setText(player.getName());
                 viewHolder.txtKdr.setText(String.format("%.1f", player.getKdr()));
                 viewHolder.txtScore.setText(String.format("%.0f", player.getScore()));
+                viewHolder.txtWlr.setText(String.format("%.1f", player.getWlr()));
             }
 
             @Override
@@ -185,9 +186,10 @@ public class PlayerListFragment extends BaseFragment implements SwipeRefreshLayo
             txtName = itemView.findViewById(R.id.txtName);
             txtKdr = itemView.findViewById(R.id.txtKdr);
             txtScore = itemView.findViewById(R.id.txtScore);
+            txtWlr = itemView.findViewById(R.id.txtWlr);
         }
 
-        public TextView txtName, txtKdr, txtScore;
+        public TextView txtName, txtKdr, txtScore, txtWlr;
     }
 
     @Override

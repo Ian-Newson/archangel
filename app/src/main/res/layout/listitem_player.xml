@@ -58,4 +58,25 @@
         app:layout_constraintRight_toRightOf="@+id/txtScoreTitle"
         app:layout_constraintTop_toBottomOf="@id/txtScoreTitle" />
 
+
+    <TextView
+        android:id="@+id/txtWlrTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="20dp"
+        android:layout_marginTop="5dp"
+        android:text="WLR"
+        android:textColor="@android:color/darker_gray"
+        app:layout_constraintRight_toLeftOf="@+id/txtScoreTitle"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/txtWlr"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="10.2"
+        android:textColor="@android:color/white"
+        app:layout_constraintRight_toRightOf="@+id/txtWlrTitle"
+        app:layout_constraintTop_toBottomOf="@id/txtWlrTitle" />
+
 </android.support.constraint.ConstraintLayout>

@@ -12,9 +12,17 @@ import io.realm.Sort;
 
 public class PlayerRepository {
 
-    public Player getPlayerById(UUID id) {
+    public Player getPlayerById(String id) {
         return Realm.getDefaultInstance()
                 .where(Player.class)
+                .equalTo("id", id)
+                .findFirst();
+    }
+
+    public Player getPlayerByUuid(UUID id) {
+        return Realm.getDefaultInstance()
+                .where(Player.class)
+                .equalTo("uniqueIds.id", id.toString())
                 .equalTo("id", id.toString())
                 .findFirst();
     }
