@@ -23,7 +23,6 @@ public class MainActivity extends BaseActivity {
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
 
     private ProgressBar mProgress;
-    private TextView mText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,7 +30,6 @@ public class MainActivity extends BaseActivity {
         setContentView(R.layout.activity_main);
 
         mProgress = findViewById(R.id.progressBar);
-        mText = findViewById(R.id.txtStatus);
 
         mainActivity = this;
         NotificationsManager.handleNotifications(this, NotificationSettings.SenderId, MyHandler.class);
@@ -110,7 +108,7 @@ public class MainActivity extends BaseActivity {
             @Override
             public void run() {
                 //mProgress.animate().alpha(0).start();
-                toast("Registration completed! You will now receive game alerts for Archangel.");
+                //toast("Registration completed! You will now receive game alerts for Archangel.");
 
                 startActivity(ListsActivity.class);
                 finish();

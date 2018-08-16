@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Toast;
@@ -23,9 +24,12 @@ public class BaseActivity extends AppCompatActivity {
         mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
         mFirebaseAnalytics.setCurrentScreen(this, this.getClass().getSimpleName(), null);
 
-        getSupportActionBar().setCustomView(R.layout.actionbartitle);
-        getSupportActionBar().setDisplayShowCustomEnabled(true);
-        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
+        ActionBar actionBar = getSupportActionBar();
+        if (null != actionBar) {
+            actionBar.setCustomView(R.layout.actionbartitle);
+            actionBar.setDisplayShowCustomEnabled(true);
+            actionBar.setBackgroundDrawable(new ColorDrawable(Color.BLACK));
+        }
     }
 
     public void toast(String message) {

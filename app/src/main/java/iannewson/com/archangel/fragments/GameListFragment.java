@@ -30,6 +30,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -131,6 +133,36 @@ public class GameListFragment extends BaseFragment implements SwipeRefreshLayout
                     }
                 }
                 viewHolder.txt.setText(strNames.toString());
+
+                //Section heading
+                Boolean showHeading = false;
+                if (0 == i) {
+                    showHeading = true;
+                } else {
+                    Game previousGame = mGames[i-1];
+                    if (previousGame.getGameType() != game.getGameType()) {
+                        showHeading = true;
+                    } else {
+                        if (previousGame.allows1v1() != game.allows1v1()) {
+                            showHeading = true;
+                        }
+                    }
+                }
+
+                if (!showHeading) {
+                    viewHolder.headingContainer.setVisibility(View.GONE);
+                } else {
+                    viewHolder.headingContainer.setVisibility(View.VISIBLE);
+                    if (Game.GameTypes.Coop == game.getGameType()) {
+                        viewHolder.heading.setText("Co-op");
+                    } else {
+                        if (game.allows1v1()) {
+                            viewHolder.heading.setText("Deathmatch, 2v2 or 1v1");
+                        } else {
+                            viewHolder.heading.setText("Deathmatch, 2v2");
+                        }
+                    }
+                }
             }
 
             @Override
@@ -185,6 +217,7 @@ public class GameListFragment extends BaseFragment implements SwipeRefreshLayout
                 }
 
                 mGames = new Gson().fromJson(response.toString(), Game[].class);
+                sortGames(mGames);
 
                 mList.getAdapter().notifyDataSetChanged();
             }
@@ -233,20 +266,48 @@ public class GameListFragment extends BaseFragment implements SwipeRefreshLayout
         }
     }
 
+    private void sortGames(Game[] games) {
+        Arrays.sort(games, new Comparator<Game>() {
+            @Override
+            public int compare(Game left, Game right) {
+                Game.GameTypes leftType = left.getGameType(), rightType = right.getGameType();
+                if (leftType == Game.GameTypes.Deathmatch && rightType != Game.GameTypes.Deathmatch) {
+                    return -1;
+                } else if (rightType == Game.GameTypes.Deathmatch && leftType != Game.GameTypes.Deathmatch) {
+                    return 1;
+                } else {
+                    if (left.allows1v1() && right.allows1v1()) {
+                        return 0;
+                    } else if (left.allows1v1()) {
+                        return -1;
+                    } else {
+                        return 1;
+                    }
+                }
+            }
+        });
+    }
+
     public class ViewHolder extends RecyclerView.ViewHolder {
 
         public ViewHolder(@NonNull ViewGroup itemView) {
             super(itemView);
             txt = itemView.findViewById(R.id.txtName);
             date = itemView.findViewById(R.id.txtDate);
+
+            headingContainer = itemView.findViewById(R.id.heading);
+            heading = itemView.findViewById(R.id.txtHeading);
         }
 
-        public TextView txt, date;
+        public ViewGroup headingContainer;
+        public TextView txt, date, heading;
     }
 
     @Override
     public void onRefresh() {
         loadData();
+        FirebaseAnalytics.getInstance(this.getContext())
+                .logEvent("GameList.Refresh", null);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
